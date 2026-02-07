@@ -1,0 +1,51 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="blur-filter">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="80" />
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#08090d"/>
+
+  <!-- Grid pattern -->
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Gradient orbs background -->
+  <!-- Coral orb top-right -->
+  <circle cx="1050" cy="80" r="280" fill="#f97068" opacity="0.08" filter="url(#blur-filter)"/>
+
+  <!-- Teal orb bottom-left -->
+  <circle cx="150" cy="580" r="280" fill="#1dd3b0" opacity="0.06" filter="url(#blur-filter)"/>
+
+  <!-- Content container centered -->
+  <g transform="translate(600, 315)">
+    <!-- OVERWORLD text -->
+    <text x="0" y="-60" font-family="system-ui" font-size="72" font-weight="800" letter-spacing="12" text-anchor="middle" dominant-baseline="middle">
+      <tspan fill="#e8e6e1">OVER</tspan><tspan fill="#f97068">WORLD</tspan>
+    </text>
+
+    <!-- Tagline -->
+    <text x="0" y="40" font-family="system-ui" font-size="28" font-weight="300" fill="#706e68" text-anchor="middle" dominant-baseline="middle">
+      Your Personal Soundtrack for Reality
+    </text>
+
+    <!-- Pill tags -->
+    <g transform="translate(-240, 120)">
+      <!-- LOCATION pill -->
+      <rect x="0" y="0" width="140" height="48" rx="24" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+      <text x="70" y="24" font-family="system-ui" font-size="16" font-weight="500" fill="#9a9890" text-anchor="middle" dominant-baseline="middle">LOCATION</text>
+
+      <!-- TIME pill -->
+      <rect x="170" y="0" width="140" height="48" rx="24" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+      <text x="240" y="24" font-family="system-ui" font-size="16" font-weight="500" fill="#9a9890" text-anchor="middle" dominant-baseline="middle">TIME</text>
+
+      <!-- ACTIVITY pill -->
+      <rect x="340" y="0" width="140" height="48" rx="24" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+      <text x="410" y="24" font-family="system-ui" font-size="16" font-weight="500" fill="#9a9890" text-anchor="middle" dominant-baseline="middle">ACTIVITY</text>
+    </g>
+  </g>
+</svg>

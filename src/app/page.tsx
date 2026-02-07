@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 
 const scenes = [
   {
@@ -49,6 +49,7 @@ const scenes = [
 
 export default function Home() {
   const [currentScene, setCurrentScene] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
   const notesCanvasRef = useRef<HTMLCanvasElement>(null);
   const mapCanvasRef = useRef<HTMLCanvasElement>(null);
   const mapSectionRef = useRef<HTMLElement>(null);
@@ -91,10 +92,20 @@ export default function Home() {
           if (e.isIntersecting) e.target.classList.add("visible");
         });
       },
-      { threshold: 0.08 }
+      { threshold: 0, rootMargin: "0px 0px 50px 0px" }
     );
-    document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    const revealEls = document.querySelectorAll(".reveal");
+    revealEls.forEach((el) => observer.observe(el));
+
+    // Fallback: force-reveal any elements still hidden after 2s
+    const fallbackTimer = setTimeout(() => {
+      revealEls.forEach((el) => el.classList.add("visible"));
+    }, 2000);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   // Nav shrink on scroll
@@ -119,8 +130,10 @@ export default function Home() {
     return () => document.removeEventListener("mousemove", handler);
   }, []);
 
-  // Floating music notes canvas
+  // Floating music notes canvas (skip if prefers-reduced-motion)
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     const canvas = notesCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -141,6 +154,7 @@ export default function Home() {
     let notes: Note[] = [];
     const symbols = ["\u266A", "\u266B", "\u266C", "\u{1F3B5}"];
     let animId: number;
+    let paused = false;
 
     function resize() {
       canvas!.width = window.innerWidth;
@@ -149,8 +163,15 @@ export default function Home() {
     resize();
     window.addEventListener("resize", resize);
 
+    // Pause when tab is hidden
+    function onVisibility() {
+      paused = document.hidden;
+      if (!paused) animId = requestAnimationFrame(animate);
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+
     function spawnNote() {
-      if (notes.length > 12) return;
+      if (paused || notes.length > 12) return;
       notes.push({
         x: Math.random() * canvas!.width,
         y: canvas!.height + 20,
@@ -165,6 +186,7 @@ export default function Home() {
     }
 
     function animate() {
+      if (paused) return;
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
       notes = notes.filter((n) => n.y > -40 && n.opacity > 0);
       notes.forEach((n) => {
@@ -191,11 +213,14 @@ export default function Home() {
       cancelAnimationFrame(animId);
       clearInterval(spawnInterval);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
-  // Animated map canvas
+  // Animated map canvas (pauses when off-screen, skips if reduced motion)
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     const canvas = mapCanvasRef.current;
     const section = mapSectionRef.current;
     if (!canvas || !section) return;
@@ -207,6 +232,7 @@ export default function Home() {
     let grid: (typeof zoneTypes[number] | null)[][] = [];
     let t = 0;
     let animId: number;
+    let isVisible = false;
 
     const zoneTypes = [
       { type: "beach", fill: "rgba(29, 211, 176, 0.07)", border: "rgba(29, 211, 176, 0.2)" },
@@ -278,7 +304,18 @@ export default function Home() {
     resize();
     window.addEventListener("resize", resize);
 
+    // Pause when section is off-screen
+    const visObs = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) animId = requestAnimationFrame(animate);
+      },
+      { threshold: 0 }
+    );
+    visObs.observe(section);
+
     function animate() {
+      if (!isVisible) return;
       t += 0.008;
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
 
@@ -365,6 +402,7 @@ export default function Home() {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", resize);
+      visObs.disconnect();
     };
   }, []);
 
@@ -466,6 +504,8 @@ export default function Home() {
                       key={i}
                       className={`scene-btn ${i === currentScene ? "active" : ""}`}
                       onClick={() => setCurrentScene(i)}
+                      aria-label={`Switch to ${s.track} - ${s.location}`}
+                      aria-pressed={i === currentScene}
                     >
                       {s.btnLabel}
                     </button>
@@ -943,6 +983,75 @@ export default function Home() {
               Join Discord
             </a>
           </div>
+          {submitted ? (
+            <p
+              className="reveal"
+              style={{
+                color: "var(--teal)",
+                fontSize: 14,
+                fontWeight: 500,
+                marginTop: 32,
+                textAlign: "center",
+              }}
+            >
+              You&apos;re on the list. We&apos;ll be in touch.
+            </p>
+          ) : (
+            <form
+              className="reveal"
+              style={{
+                display: "flex",
+                gap: 8,
+                justifyContent: "center",
+                marginTop: 32,
+                maxWidth: 420,
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const data = new FormData(form);
+                try {
+                  await fetch("https://formsubmit.co/ajax/nathan@overworld.dev", {
+                    method: "POST",
+                    body: data,
+                  });
+                  setSubmitted(true);
+                } catch {
+                  setSubmitted(true);
+                }
+              }}
+            >
+              <input type="text" name="_honey" style={{ display: "none" }} />
+              <input type="hidden" name="_subject" value="New Overworld signup!" />
+              <input type="hidden" name="_template" value="table" />
+              <input
+                type="email"
+                name="email"
+                placeholder="your@email.com"
+                required
+                style={{
+                  flex: 1,
+                  padding: "12px 18px",
+                  borderRadius: 100,
+                  border: "1px solid var(--border)",
+                  background: "var(--bg-elevated)",
+                  color: "var(--text)",
+                  fontSize: 14,
+                  fontFamily: "inherit",
+                  outline: "none",
+                }}
+              />
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ whiteSpace: "nowrap" }}
+              >
+                Notify Me
+              </button>
+            </form>
+          )}
           <p className="cta-fine reveal">
             passion project &middot; no equity needed &middot; just come build
             cool stuff

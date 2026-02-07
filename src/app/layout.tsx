@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const syne = Syne({
@@ -34,12 +35,21 @@ export const metadata: Metadata = {
     siteName: "Overworld",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "/og.svg",
+        width: 1200,
+        height: 630,
+        alt: "Overworld — Your Personal Soundtrack for Reality",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "OVERWORLD — Your Personal Soundtrack for Reality",
     description:
       "A music app that matches soundtracks to the world around you.",
+    images: ["/og.svg"],
   },
 };
 
@@ -48,12 +58,35 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Overworld",
+    description:
+      "A location-aware music app that plays the perfect song for where you are, what time it is, and what you're doing.",
+    applicationCategory: "MusicApplication",
+    operatingSystem: "iOS",
+    url: "https://overworld.dev",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  };
+
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body
         className={`${syne.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
