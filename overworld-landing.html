@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OVERWORLD — Your Personal Soundtrack for Reality</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090d;
+    --bg-elevated: #0f1117;
+    --bg-card: #12141c;
+    --text: #e8e6e1;
+    --text-dim: #706e68;
+    --text-mid: #9a9890;
+    --accent: #f97068;
+    --accent-glow: rgba(249, 112, 104, 0.15);
+    --teal: #1dd3b0;
+    --teal-dim: rgba(29, 211, 176, 0.12);
+    --purple: #7b6bdb;
+    --purple-dim: rgba(123, 107, 219, 0.12);
+    --gold: #f4a261;
+    --border: rgba(255,255,255,0.055);
+    --border-hover: rgba(255,255,255,0.12);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent); color: var(--bg); }
+
+  /* ─── GRAIN ─── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0.024;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px;
+  }
+
+  /* ─── UTILS ─── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+  .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  /* ─── SUBTLE GRID BG ─── */
+  .grid-bg {
+    position: fixed; inset: 0; z-index: -1;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  /* ─── FLOATING MUSIC NOTES (canvas) ─── */
+  #notes-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 18px 0;
+    backdrop-filter: blur(24px) saturate(1.2);
+    background: rgba(8,9,13,0.75);
+    border-bottom: 1px solid var(--border);
+    transition: padding 0.3s;
+  }
+  nav.scrolled { padding: 12px 0; }
+  nav .container { display: flex; justify-content: space-between; align-items: center; }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 18px;
+    letter-spacing: 4px; color: var(--text);
+  }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 0; }
+  .nav-links a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--text-dim);
+    text-decoration: none; transition: color 0.3s; padding: 8px 16px;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    background: var(--accent) !important; color: var(--bg) !important;
+    padding: 7px 18px !important; border-radius: 100px;
+    font-weight: 500 !important;
+    transition: transform 0.3s, box-shadow 0.3s !important;
+    margin-left: 8px !important;
+  }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--accent-glow); }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    position: relative;
+    padding: 120px 0 80px;
+  }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 64px;
+    align-items: center;
+    position: relative; z-index: 2;
+  }
+
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(249,112,104,0.12);
+    border-radius: 100px;
+    padding: 5px 14px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.7s ease both;
+  }
+  .hero-tag .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); animation: pulse-dot 2s infinite;
+  }
+  .hero-tag span { font-size: 12px; color: var(--accent); font-weight: 500; }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(44px, 6vw, 80px);
+    font-weight: 800; line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.7s 0.08s ease both;
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent), var(--gold) 60%, var(--teal));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: fadeUp 0.7s 0.08s ease both, gradientShift 8s ease infinite;
+  }
+
+  .hero-sub {
+    font-size: 17px; color: var(--text-dim); max-width: 480px;
+    line-height: 1.75; margin-bottom: 40px; font-weight: 300;
+    animation: fadeUp 0.7s 0.16s ease both;
+  }
+
+  .hero-actions {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    animation: fadeUp 0.7s 0.24s ease both;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 28px; border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    text-decoration: none; cursor: pointer; border: none;
+    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px var(--accent-glow); }
+  .btn-ghost {
+    background: transparent; color: var(--text-mid);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--border-hover); color: var(--text); background: rgba(255,255,255,0.02); }
+
+  /* ─── HERO NOW PLAYING DEMO ─── */
+  .hero-demo {
+    animation: fadeUp 0.7s 0.32s ease both;
+  }
+  .now-playing-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.5s;
+  }
+  .now-playing-card:hover { border-color: var(--border-hover); }
+  .now-playing-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), transparent);
+    opacity: 0.5;
+  }
+
+  .np-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px;
+  }
+  .np-label { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+  .np-location {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--teal);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .np-location .loc-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); animation: pulse-dot 1.5s infinite; }
+
+  .np-album {
+    width: 100%; aspect-ratio: 1; border-radius: 14px;
+    margin-bottom: 20px;
+    position: relative; overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .np-album-bg {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 72px;
+    transition: all 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .np-track-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 4px;
+    transition: all 0.4s;
+  }
+  .np-track-source { font-size: 13px; color: var(--text-dim); font-weight: 300; transition: all 0.4s; }
+
+  .np-waveform {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 24px; margin-top: 20px;
+  }
+  .np-waveform .bar {
+    width: 3px; border-radius: 2px;
+    background: var(--accent);
+    animation: wave-bar 1.2s ease-in-out infinite;
+    transition: background 0.5s;
+  }
+
+  .np-context-tags {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 16px;
+  }
+  .np-ctx-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; padding: 3px 9px; border-radius: 6px;
+    letter-spacing: 0.5px;
+    transition: all 0.4s;
+  }
+
+  /* Scene transition button */
+  .scene-switcher {
+    display: flex; gap: 6px; margin-top: 20px;
+  }
+  .scene-btn {
+    flex: 1;
+    padding: 10px; border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    color: var(--text-dim); font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer; transition: all 0.3s;
+    text-align: center; letter-spacing: 0.5px;
+  }
+  .scene-btn:hover { border-color: var(--border-hover); color: var(--text); }
+  .scene-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+  /* Hero orbs */
+  .orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(120px); pointer-events: none;
+  }
+  .orb-1 { width: 500px; height: 500px; background: var(--accent); top: 5%; right: -8%; opacity: 0.06; animation: float 22s ease-in-out infinite; }
+  .orb-2 { width: 350px; height: 350px; background: var(--teal); bottom: 15%; left: -5%; opacity: 0.05; animation: float 28s ease-in-out infinite reverse; }
+  .orb-3 { width: 300px; height: 300px; background: var(--purple); top: 50%; left: 30%; opacity: 0.03; animation: float 18s ease-in-out infinite 5s; }
+
+  /* ─── SECTIONS ─── */
+  section { padding: 120px 0; position: relative; }
+  .section-header { margin-bottom: 56px; }
+  .section-header .label { margin-bottom: 14px; }
+  .section-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(30px, 3.8vw, 48px);
+    font-weight: 700; line-height: 1.15; letter-spacing: -1px;
+  }
+  .section-header p {
+    margin-top: 14px; color: var(--text-dim);
+    font-size: 16px; max-width: 520px; font-weight: 300; line-height: 1.75;
+  }
+
+  /* ─── CONCEPT CARDS ─── */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .concept-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    transition: all 0.45s cubic-bezier(0.4,0,0.2,1);
+    position: relative; overflow: hidden;
+    cursor: default;
+  }
+  .concept-card::before {
+    content: ''; position: absolute;
+    top: -1px; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .concept-card:hover { border-color: var(--border-hover); transform: translateY(-6px); }
+  .concept-card:hover::before { opacity: 1; }
+
+  .cc-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 14px; }
+  .cc-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; padding: 3px 9px; border-radius: 6px; letter-spacing: 0.5px;
+  }
+  .tag-loc { background: var(--teal-dim); color: var(--teal); }
+  .tag-time { background: var(--purple-dim); color: var(--purple); }
+  .tag-act { background: var(--accent-glow); color: var(--accent); }
+
+  .cc-desc { font-size: 14px; color: var(--text-dim); font-weight: 300; line-height: 1.65; margin-bottom: 18px; }
+
+  .cc-track {
+    display: flex; align-items: center; gap: 12px;
+    padding-top: 16px; border-top: 1px solid var(--border);
+  }
+  .cc-art {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .cc-track-name { font-weight: 500; font-size: 13px; }
+  .cc-track-src { font-size: 11px; color: var(--text-dim); }
+
+  /* ─── HOW IT WORKS ─── */
+  .dim-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .dim-card {
+    background: var(--bg-elevated);
+    padding: 36px 28px;
+    position: relative;
+  }
+  .dim-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 72px; font-weight: 800;
+    color: rgba(255,255,255,0.025);
+    position: absolute; top: 8px; right: 16px;
+    line-height: 1;
+  }
+  .dim-icon { font-size: 28px; margin-bottom: 18px; display: block; }
+  .dim-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px; font-weight: 700; margin-bottom: 8px;
+  }
+  .dim-card p { font-size: 13px; color: var(--text-dim); font-weight: 300; line-height: 1.7; }
+
+  .modes-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 40px;
+  }
+  .mode-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: all 0.35s;
+  }
+  .mode-card:hover { border-color: var(--border-hover); }
+  .mode-card h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .mode-card p { font-size: 13px; color: var(--text-dim); font-weight: 300; }
+
+  /* ─── COMMUNITY ─── */
+  .community-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .sonic-map {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px; overflow: hidden;
+    transition: all 0.4s;
+  }
+  .sonic-map:hover { border-color: var(--border-hover); transform: translateY(-4px); }
+  .map-author { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: var(--bg);
+  }
+  .map-author .name { font-weight: 600; font-size: 14px; }
+  .map-author .city { font-size: 11px; color: var(--text-dim); }
+  .map-zones { display: flex; flex-direction: column; gap: 6px; }
+  .zone {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 12px; border-radius: var(--radius-sm); font-size: 12px;
+  }
+  .zone-name { font-weight: 500; }
+  .zone-track { color: var(--text-dim); font-size: 11px; font-style: italic; }
+
+  /* ─── ANIMATED MAP CANVAS ─── */
+  .map-demo-section { position: relative; padding: 100px 0; overflow: hidden; }
+  #map-canvas {
+    position: absolute; inset: 0; z-index: 0; opacity: 0.6;
+  }
+  .map-demo-overlay {
+    position: relative; z-index: 2; text-align: center;
+  }
+  .map-demo-overlay h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 700; margin-bottom: 12px;
+  }
+  .map-demo-overlay p {
+    color: var(--text-dim); font-size: 16px; font-weight: 300; max-width: 480px; margin: 0 auto;
+  }
+
+  /* ─── TECH ─── */
+  .tech-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+  .tech-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; padding: 9px 16px;
+    border: 1px solid var(--border); border-radius: 100px;
+    color: var(--text-dim); letter-spacing: 0.5px;
+    transition: all 0.3s; cursor: default;
+  }
+  .tech-pill:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ─── TIMELINE ─── */
+  .timeline {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    margin-top: 48px; position: relative;
+  }
+  .timeline::before {
+    content: ''; position: absolute; top: 18px; left: 0; right: 0;
+    height: 1px; background: var(--border);
+  }
+  .tl-item { padding-top: 44px; position: relative; }
+  .tl-item::before {
+    content: ''; position: absolute; top: 12px; left: 0;
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid var(--text-dim); background: var(--bg);
+    transition: all 0.4s;
+  }
+  .tl-item.active::before { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+  .tl-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 1px; margin-bottom: 6px; }
+  .tl-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .tl-desc { font-size: 12px; color: var(--text-dim); font-weight: 300; line-height: 1.6; padding-right: 16px; }
+
+  /* ─── ROLES ─── */
+  .roles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .role-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+  .role-card:hover { border-color: var(--border-hover); transform: translateY(-5px); }
+  .role-emoji { font-size: 28px; margin-bottom: 14px; display: block; }
+  .role-card h3 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+  .role-card ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .role-card li {
+    font-size: 13px; color: var(--text-dim); font-weight: 300; padding-left: 14px; position: relative;
+  }
+  .role-card li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-size: 11px; }
+
+  /* ─── PERSONAL ─── */
+  .personal-block { max-width: 640px; }
+  .personal-block blockquote {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(20px, 2.5vw, 28px);
+    font-weight: 600; line-height: 1.45;
+    margin-bottom: 20px;
+    padding-left: 20px;
+    border-left: 3px solid var(--accent);
+  }
+  .personal-block blockquote em { color: var(--accent); font-style: normal; }
+  .personal-bio {
+    display: flex; align-items: center; gap: 14px;
+    margin-top: 28px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .bio-av {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--bg);
+  }
+  .bio-name { font-weight: 600; font-size: 14px; }
+  .bio-desc { font-size: 12px; color: var(--text-dim); }
+
+  /* ─── CTA ─── */
+  .cta-section { text-align: center; padding: 160px 0; position: relative; }
+  .cta-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(34px, 5vw, 60px);
+    font-weight: 800; line-height: 1.1; letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+  .cta-section p { color: var(--text-dim); font-size: 16px; max-width: 440px; margin: 0 auto 36px; font-weight: 300; }
+  .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .cta-fine {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-top: 36px;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 36px 0; text-align: center;
+  }
+  footer p { font-size: 12px; color: var(--text-dim); font-weight: 300; }
+  footer .logo { margin-bottom: 10px; display: inline-block; font-size: 14px; }
+
+  /* ─── DIVIDER ─── */
+  .wave-divider {
+    height: 60px; display: flex; align-items: center; justify-content: center; gap: 2.5px; opacity: 0.18;
+  }
+  .wave-divider .bar {
+    width: 2px; background: var(--accent); border-radius: 2px;
+    animation: wave-bar 1.4s ease-in-out infinite;
+  }
+
+  /* ─── SCROLL REVEAL ─── */
+  .reveal {
+    opacity: 0; transform: translateY(28px);
+    transition: all 0.75s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.08s; }
+  .reveal-delay-2 { transition-delay: 0.16s; }
+  .reveal-delay-3 { transition-delay: 0.24s; }
+
+  /* ─── CURSOR GLOW (desktop only) ─── */
+  .cursor-glow {
+    position: fixed; width: 400px; height: 400px;
+    border-radius: 50%; pointer-events: none; z-index: 1;
+    background: radial-gradient(circle, rgba(249,112,104,0.04) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(20px, -30px); }
+    66% { transform: translate(-15px, 15px); }
+  }
+  @keyframes wave-bar {
+    0%, 100% { height: 6px; }
+    50% { height: var(--h, 20px); }
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @keyframes mapPulse {
+    0%, 100% { r: 6; opacity: 0.6; }
+    50% { r: 10; opacity: 0.2; }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+    .hero-demo { max-width: 360px; }
+    .concept-grid, .dim-grid, .roles-grid { grid-template-columns: 1fr; }
+    .community-grid { grid-template-columns: 1fr; }
+    .timeline { grid-template-columns: 1fr 1fr; gap: 28px; }
+    .modes-row { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .cursor-glow { display: none; }
+  }
+  @media (max-width: 600px) {
+    .container { padding: 0 20px; }
+    section { padding: 80px 0; }
+    .timeline { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<canvas id="notes-canvas"></canvas>
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <div class="container">
+    <div class="logo">OVER<span>WORLD</span></div>
+    <div class="nav-links">
+      <a href="#concept">Concept</a>
+      <a href="#how">How It Works</a>
+      <a href="#community">Community</a>
+      <a href="#help">Contribute</a>
+      <a href="#cta" class="nav-cta">Join</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-tag">
+          <div class="dot"></div>
+          <span>Building now · MVP targeting spring 2026</span>
+        </div>
+        <h1>Your personal<br><span class="gradient-text">soundtrack</span><br>for reality.</h1>
+        <p class="hero-sub">A music app that knows where you are, what time it is, and what you're doing — then plays the perfect song. No scrolling. No choosing. Just living.</p>
+        <div class="hero-actions">
+          <a href="#cta" class="btn btn-primary">Get Involved →</a>
+          <a href="#concept" class="btn btn-ghost">See how it works</a>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE NOW PLAYING -->
+      <div class="hero-demo">
+        <div class="now-playing-card" id="npCard">
+          <div class="np-header">
+            <span class="np-label">Now Playing</span>
+            <span class="np-location"><span class="loc-dot"></span> <span id="npLocText">Alki Beach, Seattle</span></span>
+          </div>
+          <div class="np-album" id="npAlbum">
+            <div class="np-album-bg" id="npAlbumBg">🐚</div>
+          </div>
+          <div class="np-track-name" id="npTrackName">Aquarium</div>
+          <div class="np-track-source" id="npTrackSrc">Maplestory OST</div>
+          <div class="np-waveform" id="npWaveform"></div>
+          <div class="np-context-tags" id="npTags">
+            <span class="np-ctx-tag tag-loc">🏖️ Beach</span>
+            <span class="np-ctx-tag tag-time">Afternoon</span>
+            <span class="np-ctx-tag tag-act">Walking</span>
+          </div>
+          <div class="scene-switcher">
+            <button class="scene-btn active" data-scene="0">🏖️ Beach</button>
+            <button class="scene-btn" data-scene="1">🏙️ City</button>
+            <button class="scene-btn" data-scene="2">🌲 Park</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-divider" id="concept"></div>
+
+<!-- CONCEPT -->
+<section>
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="label">The Concept</p>
+      <h2>Every place has<br>its own theme.</h2>
+      <p>In games, walking into a new area changes the music. Overworld does that for real life — matching soundtracks to the world around you.</p>
+    </div>
+
+    <div class="concept-grid">
+      <div class="concept-card reveal reveal-delay-1">
+        <div class="cc-tags">
+          <span class="cc-tag tag-loc">🏖️ Beach</span>
+          <span class="cc-tag tag-time">Afternoon</span>
+          <span class="cc-tag tag-act">Walking</span>
+        </div>
+        <p class="cc-desc">Sun on your face, sand underfoot, waves in the distance. The music just fits.</p>
+        <div class="cc-track">
+          <div class="cc-art" style="background:var(--teal-dim);">🐚</div>
+          <div>
+            <div class="cc-track-name">Aquarium</div>
+            <div class="cc-track-src">Maplestory OST</div>
+          </div>
+        </div>
+      </div>
+      <div class="concept-card reveal reveal-delay-2">
+        <div class="cc-tags">
+          <span class="cc-tag tag-loc">🏙️ City</span>
+          <span class="cc-tag tag-time">Evening</span>
+          <span class="cc-tag tag-act">Exploring</span>
+        </div>
+        <p class="cc-desc">Neon signs flicker on. The city hums around you. Main character energy.</p>
+        <div class="cc-track">
+          <div class="cc-art" style="background:var(--purple-dim);">🌆</div>
+          <div>
+            <div class="cc-track-name">Lazy Afternoons</div>
+            <div class="cc-track-src">Kingdom Hearts II</div>
+          </div>
+        </div>
+      </div>
+      <div class="concept-card reveal reveal-delay-3">
+        <div class="cc-tags">
+          <span class="cc-tag tag-loc">🌲 Park</span>
+          <span class="cc-tag tag-time">Morning</span>
+          <span class="cc-tag tag-act">Walking</span>
+        </div>
+        <p class="cc-desc">Quiet trails, birdsong, dappled light through the canopy. Peace.</p>
+        <div class="cc-track">
+          <div class="cc-art" style="background:rgba(100,200,100,0.1);">🌿</div>
+          <div>
+            <div class="cc-track-name">Kokiri Forest</div>
+            <div class="cc-track-src">Zelda: Ocarina of Time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" style="background:var(--bg-elevated);">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="label">How It Works</p>
+      <h2>Three dimensions<br>of context.</h2>
+      <p>Overworld doesn't just know where you are. It reads the full picture — then matches it to your music.</p>
+    </div>
+
+    <div class="dim-grid reveal">
+      <div class="dim-card">
+        <span class="dim-num">01</span>
+        <span class="dim-icon">📍</span>
+        <h3>Location</h3>
+        <p>Create "grids" — zones classified by type. Beach, park, city, residential. Not specific addresses — types that work anywhere in the world.</p>
+      </div>
+      <div class="dim-card">
+        <span class="dim-num">02</span>
+        <span class="dim-icon">⏰</span>
+        <h3>Time</h3>
+        <p>Morning energy is different from evening calm. Overworld adapts your soundtrack as the day progresses.</p>
+      </div>
+      <div class="dim-card">
+        <span class="dim-num">03</span>
+        <span class="dim-icon">🚶</span>
+        <h3>Activity</h3>
+        <p>Walking gets exploration vibes. Sitting gets focus beats. Driving gets road trip energy. Motion sensors handle it.</p>
+      </div>
+    </div>
+
+    <div class="modes-row reveal">
+      <div class="mode-card">
+        <h3>⚡ Manual Mode</h3>
+        <p>Quick scene switching. Zero battery drain. The default for everyone.</p>
+      </div>
+      <div class="mode-card">
+        <h3>✨ Automatic Mode</h3>
+        <p>Opt-in hands-free. Motion-triggered, battery-optimized. Music flows as you move.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ANIMATED MAP INTERLUDE -->
+<section class="map-demo-section">
+  <canvas id="map-canvas"></canvas>
+  <div class="map-demo-overlay reveal">
+    <p class="label" style="margin-bottom:14px;">The Grid System</p>
+    <h2>Your city, your<br>sonic zones.</h2>
+    <p>Draw zones on a map. Classify them by type. Assign soundtracks. Walk through them and the music changes.</p>
+  </div>
+</section>
+
+<!-- COMMUNITY -->
+<section id="community">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="label">The Differentiator</p>
+      <h2>Shared sonic<br>landscapes.</h2>
+      <p>Create grids for your city. Share them globally. When someone visits, they experience the world through your ears.</p>
+    </div>
+
+    <div class="community-grid">
+      <div class="sonic-map reveal reveal-delay-1">
+        <div class="map-author">
+          <div class="avatar" style="background:linear-gradient(135deg,var(--accent),var(--gold));">N</div>
+          <div><div class="name">Nathan's Seattle</div><div class="city">47 grids · 12 scenes · 340 downloads</div></div>
+        </div>
+        <div class="map-zones">
+          <div class="zone" style="background:rgba(100,200,255,0.06);"><span class="zone-name">🌊 Alki Beach</span><span class="zone-track">Aquarium — Maplestory</span></div>
+          <div class="zone" style="background:rgba(150,150,150,0.06);"><span class="zone-name">🏙️ Pike Place</span><span class="zone-track">Traverse Town — KH</span></div>
+          <div class="zone" style="background:rgba(100,200,100,0.06);"><span class="zone-name">🌲 Discovery Park</span><span class="zone-track">Kokiri Forest — Zelda</span></div>
+        </div>
+      </div>
+      <div class="sonic-map reveal reveal-delay-2">
+        <div class="map-author">
+          <div class="avatar" style="background:linear-gradient(135deg,var(--purple),var(--teal));">Y</div>
+          <div><div class="name">Yuki's Tokyo</div><div class="city">63 grids · 18 scenes · 892 downloads</div></div>
+        </div>
+        <div class="map-zones">
+          <div class="zone" style="background:rgba(123,107,219,0.06);"><span class="zone-name">🏮 Shibuya</span><span class="zone-track">City Pop Mixtape</span></div>
+          <div class="zone" style="background:rgba(249,112,104,0.06);"><span class="zone-name">⛩️ Asakusa</span><span class="zone-track">Okami — Main Theme</span></div>
+          <div class="zone" style="background:rgba(244,162,97,0.06);"><span class="zone-name">🌸 Ueno Park</span><span class="zone-track">Stardew — Spring</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="reveal" style="text-align:center;color:var(--text-dim);margin-top:28px;font-size:14px;font-weight:300;">Same place. Different soundtrack. Every grid is a personal expression.</p>
+  </div>
+</section>
+
+<!-- TECH + TIMELINE -->
+<section style="background:var(--bg-elevated);">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="label">Under the Hood</p>
+      <h2>Built to ship.</h2>
+      <p>Real tech, realistic timeline. This isn't a concept — it's being actively built.</p>
+    </div>
+
+    <div class="tech-pills reveal">
+      <div class="tech-pill">React Native</div>
+      <div class="tech-pill">TypeScript</div>
+      <div class="tech-pill">Spotify API</div>
+      <div class="tech-pill">AWS Lambda</div>
+      <div class="tech-pill">DynamoDB</div>
+      <div class="tech-pill">GPS + Motion</div>
+      <div class="tech-pill">iOS First</div>
+    </div>
+
+    <div class="timeline reveal">
+      <div class="tl-item active">
+        <div class="tl-date">Q1–Q2 2026</div>
+        <div class="tl-title">Build MVP</div>
+        <div class="tl-desc">Manual mode, Spotify integration, grid system</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">Summer 2026</div>
+        <div class="tl-title">Launch Seattle</div>
+        <div class="tl-desc">Friends & family, community features, backend</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">Fall 2026</div>
+        <div class="tl-title">Auto Mode</div>
+        <div class="tl-desc">Context detection, battery optimization, more cities</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2027</div>
+        <div class="tl-title">Scale</div>
+        <div class="tl-desc">Growth push, expand cities, explore partnerships</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HELP -->
+<section id="help">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="label">Join the Build</p>
+      <h2>Looking for<br>collaborators.</h2>
+      <p>No equity, no contracts. Just people who think this sounds cool and want to help make it real.</p>
+    </div>
+
+    <div class="roles-grid">
+      <div class="role-card reveal reveal-delay-1">
+        <span class="role-emoji">🎵</span>
+        <h3>Music Curators</h3>
+        <ul>
+          <li>Define what "beach afternoon" sounds like</li>
+          <li>Contribute playlists & soundtrack picks</li>
+          <li>Build the first Seattle sound library</li>
+          <li>Help create context-to-music mappings</li>
+        </ul>
+      </div>
+      <div class="role-card reveal reveal-delay-2">
+        <span class="role-emoji">🎨</span>
+        <h3>Designers</h3>
+        <ul>
+          <li>Make grid creation feel intuitive</li>
+          <li>Design the map & zone interfaces</li>
+          <li>Create smooth scene transitions</li>
+          <li>Shape the community discovery UX</li>
+        </ul>
+      </div>
+      <div class="role-card reveal reveal-delay-3">
+        <span class="role-emoji">🧪</span>
+        <h3>Early Testers</h3>
+        <ul>
+          <li>Use it daily, give honest feedback</li>
+          <li>Help tune context detection</li>
+          <li>Create grids for your neighborhoods</li>
+          <li>Spread the word</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERSONAL -->
+<section style="background:var(--bg-elevated);">
+  <div class="container">
+    <div class="personal-block reveal">
+      <p class="label" style="margin-bottom:20px;">Why I'm Building This</p>
+      <blockquote>I want to walk to the beach and have it just <em>know</em> to play Maplestory Aquarium. I want city walks to feel like moving through a game world.</blockquote>
+      <p style="color:var(--text-dim);font-weight:300;font-size:14px;margin-top:14px;line-height:1.75;">I've wanted this for years. The Sony XM6's auto-scene feature came close but felt too limited. I can build the thing — I just need people who care about music and places to help make it something special.</p>
+      <div class="personal-bio">
+        <div class="bio-av">N</div>
+        <div>
+          <div class="bio-name">Nathan</div>
+          <div class="bio-desc">Developer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="orb" style="width:600px;height:600px;background:var(--accent);top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.04;"></div>
+  <div class="container" style="position:relative;z-index:2;">
+    <p class="label reveal" style="margin-bottom:14px;">Ready?</p>
+    <h2 class="reveal">Make the world sound<br>as good as it <span class="gradient-text" style="font-size:inherit;">feels</span>.</h2>
+    <p class="reveal">MVP targeting spring 2026. Looking for music lovers, designers, and early believers.</p>
+    <div class="cta-actions reveal">
+      <a href="mailto:nathan@overworld.dev" class="btn btn-primary">Let's Talk →</a>
+      <a href="#" class="btn btn-ghost">Join Discord</a>
+    </div>
+    <p class="cta-fine reveal">passion project · no equity needed · just come build cool stuff</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="logo" style="font-size:14px;">OVER<span>WORLD</span></div>
+    <p>Your Personal Soundtrack for Reality · overworld.dev · 2026</p>
+  </div>
+</footer>
+
+<script>
+// ─── SCENE DATA FOR NOW PLAYING DEMO ───
+const scenes = [
+  {
+    emoji: '🐚', bg: 'linear-gradient(135deg, #0a3d5c 0%, #1a6b7a 50%, #2d9a8f 100%)',
+    track: 'Aquarium', source: 'Maplestory OST', location: 'Alki Beach, Seattle',
+    tags: [['🏖️ Beach','tag-loc'],['Afternoon','tag-time'],['Walking','tag-act']],
+    waveColor: '#1dd3b0'
+  },
+  {
+    emoji: '🌆', bg: 'linear-gradient(135deg, #1a1040 0%, #3d2070 50%, #6a3093 100%)',
+    track: 'Lazy Afternoons', source: 'Kingdom Hearts II', location: 'Capitol Hill, Seattle',
+    tags: [['🏙️ City','tag-loc'],['Evening','tag-time'],['Exploring','tag-act']],
+    waveColor: '#7b6bdb'
+  },
+  {
+    emoji: '🌿', bg: 'linear-gradient(135deg, #0d2818 0%, #1a4a2e 50%, #2d6a4f 100%)',
+    track: 'Kokiri Forest', source: 'Zelda: Ocarina of Time', location: 'Discovery Park, Seattle',
+    tags: [['🌲 Park','tag-loc'],['Morning','tag-time'],['Walking','tag-act']],
+    waveColor: '#4ade80'
+  }
+];
+
+let currentScene = 0;
+
+function switchScene(idx) {
+  if (idx === currentScene) return;
+  currentScene = idx;
+  const s = scenes[idx];
+  const album = document.getElementById('npAlbum');
+  const albumBg = document.getElementById('npAlbumBg');
+
+  album.style.background = s.bg;
+  albumBg.textContent = s.emoji;
+  albumBg.style.transform = 'scale(0.8)';
+  albumBg.style.opacity = '0';
+  setTimeout(() => { albumBg.style.transform = 'scale(1)'; albumBg.style.opacity = '1'; }, 50);
+
+  document.getElementById('npTrackName').textContent = s.track;
+  document.getElementById('npTrackSrc').textContent = s.source;
+  document.getElementById('npLocText').textContent = s.location;
+
+  const tagsEl = document.getElementById('npTags');
+  tagsEl.innerHTML = s.tags.map(t => `<span class="np-ctx-tag ${t[1]}">${t[0]}</span>`).join('');
+
+  document.querySelectorAll('#npWaveform .bar').forEach(bar => {
+    bar.style.background = s.waveColor;
+  });
+
+  document.querySelectorAll('.scene-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === idx);
+  });
+}
+
+// Init now playing
+document.addEventListener('DOMContentLoaded', () => {
+  // Waveform bars
+  const wf = document.getElementById('npWaveform');
+  for (let i = 0; i < 32; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.setProperty('--h', (Math.random() * 18 + 4) + 'px');
+    bar.style.animationDelay = (Math.random() * 1.4) + 's';
+    bar.style.background = scenes[0].waveColor;
+    wf.appendChild(bar);
+  }
+
+  // Init album bg
+  document.getElementById('npAlbum').style.background = scenes[0].bg;
+
+  // Scene buttons
+  document.querySelectorAll('.scene-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchScene(parseInt(btn.dataset.scene)));
+  });
+
+  // Auto-cycle scenes
+  setInterval(() => switchScene((currentScene + 1) % scenes.length), 4500);
+
+  // Wave divider
+  const waveDivider = document.querySelector('.wave-divider');
+  for (let i = 0; i < 80; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.setProperty('--h', (Math.random() * 28 + 6) + 'px');
+    bar.style.animationDelay = (Math.random() * 1.4) + 's';
+    waveDivider.appendChild(bar);
+  }
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  // Nav shrink
+  window.addEventListener('scroll', () => {
+    document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Cursor glow
+  const glow = document.getElementById('cursorGlow');
+  if (window.matchMedia('(pointer: fine)').matches) {
+    document.addEventListener('mousemove', e => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    });
+  }
+});
+
+// ─── FLOATING MUSIC NOTES CANVAS ───
+(function() {
+  const canvas = document.getElementById('notes-canvas');
+  const ctx = canvas.getContext('2d');
+  let notes = [];
+  const symbols = ['♪', '♫', '♩', '♬', '🎵'];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function spawnNote() {
+    if (notes.length > 12) return;
+    notes.push({
+      x: Math.random() * canvas.width,
+      y: canvas.height + 20,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: -(Math.random() * 0.4 + 0.15),
+      size: Math.random() * 12 + 10,
+      opacity: Math.random() * 0.12 + 0.03,
+      symbol: symbols[Math.floor(Math.random() * symbols.length)],
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.005,
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    notes = notes.filter(n => n.y > -40 && n.opacity > 0);
+    notes.forEach(n => {
+      n.x += n.vx;
+      n.y += n.vy;
+      n.rotation += n.rotSpeed;
+      n.opacity -= 0.00015;
+      ctx.save();
+      ctx.translate(n.x, n.y);
+      ctx.rotate(n.rotation);
+      ctx.globalAlpha = Math.max(0, n.opacity);
+      ctx.font = `${n.size}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(n.symbol, 0, 0);
+      ctx.restore();
+    });
+    requestAnimationFrame(animate);
+  }
+
+  setInterval(spawnNote, 1200);
+  animate();
+})();
+
+// ─── ANIMATED MAP CANVAS (grid-based zones) ───
+(function() {
+  const canvas = document.getElementById('map-canvas');
+  const ctx = canvas.getContext('2d');
+  const CELL = 60;
+  let cols, rows, grid, t = 0;
+
+  const zoneTypes = [
+    { type: 'beach',       fill: 'rgba(29, 211, 176, 0.07)',  border: 'rgba(29, 211, 176, 0.2)',  label: '🌊', labelColor: '#1dd3b0' },
+    { type: 'urban_dense', fill: 'rgba(150, 150, 170, 0.06)', border: 'rgba(150, 150, 170, 0.18)', label: '🏙️', labelColor: '#9a99a8' },
+    { type: 'park',        fill: 'rgba(100, 200, 100, 0.07)', border: 'rgba(100, 200, 100, 0.2)',  label: '🌲', labelColor: '#64c864' },
+    { type: 'residential', fill: 'rgba(244, 162, 97, 0.06)',  border: 'rgba(244, 162, 97, 0.18)',  label: '🏡', labelColor: '#f4a261' },
+    { type: 'cafe',        fill: 'rgba(123, 107, 219, 0.06)', border: 'rgba(123, 107, 219, 0.18)', label: '☕', labelColor: '#7b6bdb' },
+    { type: 'waterfront',  fill: 'rgba(100, 180, 255, 0.06)', border: 'rgba(100, 180, 255, 0.18)', label: '🌅', labelColor: '#64b4ff' },
+  ];
+
+  // Create clustered zone regions on the grid
+  function initGrid() {
+    cols = Math.ceil(canvas.width / CELL) + 1;
+    rows = Math.ceil(canvas.height / CELL) + 1;
+    grid = Array.from({ length: rows }, () => Array(cols).fill(null));
+
+    // Place zone seeds and grow them into clusters
+    const seeds = [];
+    const numSeeds = Math.floor((cols * rows) / 25);
+    for (let i = 0; i < numSeeds; i++) {
+      const sc = Math.floor(Math.random() * cols);
+      const sr = Math.floor(Math.random() * rows);
+      const zone = zoneTypes[Math.floor(Math.random() * zoneTypes.length)];
+      seeds.push({ c: sc, r: sr, zone });
+      grid[sr][sc] = zone;
+    }
+
+    // Grow each seed into a rectangular cluster (like real map zones)
+    seeds.forEach(seed => {
+      const w = Math.floor(Math.random() * 4) + 2;
+      const h = Math.floor(Math.random() * 3) + 2;
+      for (let dr = 0; dr < h; dr++) {
+        for (let dc = 0; dc < w; dc++) {
+          const r = seed.r + dr;
+          const c = seed.c + dc;
+          if (r >= 0 && r < rows && c >= 0 && c < cols && !grid[r][c]) {
+            grid[r][c] = seed.zone;
+          }
+        }
+      }
+    });
+  }
+
+  function resize() {
+    canvas.width = canvas.parentElement.offsetWidth;
+    canvas.height = canvas.parentElement.offsetHeight;
+    initGrid();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Player dot
+  let playerPath = [];
+  let playerIdx = 0;
+  let playerX = 0, playerY = 0;
+  function initPlayer() {
+    // Create a wandering path across the grid
+    playerPath = [];
+    let c = Math.floor(cols / 2), r = Math.floor(rows / 2);
+    for (let i = 0; i < 200; i++) {
+      playerPath.push({ x: c * CELL + CELL / 2, y: r * CELL + CELL / 2 });
+      const dir = Math.floor(Math.random() * 4);
+      if (dir === 0 && c < cols - 2) c++;
+      else if (dir === 1 && c > 1) c--;
+      else if (dir === 2 && r < rows - 2) r++;
+      else if (dir === 3 && r > 1) r--;
+    }
+    playerIdx = 0;
+    playerX = playerPath[0].x;
+    playerY = playerPath[0].y;
+  }
+  initPlayer();
+
+  function animate() {
+    t += 0.008;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw street grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+    ctx.lineWidth = 1;
+    for (let c = 0; c <= cols; c++) {
+      ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, rows * CELL); ctx.stroke();
+    }
+    for (let r = 0; r <= rows; r++) {
+      ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(cols * CELL, r * CELL); ctx.stroke();
+    }
+
+    // Draw zone cells
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const zone = grid[r][c];
+        if (!zone) continue;
+        const x = c * CELL;
+        const y = r * CELL;
+
+        // Subtle pulse per zone type
+        const pulse = Math.sin(t * 1.5 + c * 0.3 + r * 0.2) * 0.015 + 1;
+
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = zone.fill;
+        ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
+
+        // Border — only draw edges where neighbor is different
+        ctx.strokeStyle = zone.border;
+        ctx.lineWidth = 1;
+        const drawTop = r === 0 || grid[r-1][c] !== zone;
+        const drawBot = r === rows-1 || grid[r+1]?.[c] !== zone;
+        const drawLeft = c === 0 || grid[r][c-1] !== zone;
+        const drawRight = c === cols-1 || grid[r][c+1] !== zone;
+
+        ctx.beginPath();
+        if (drawTop) { ctx.moveTo(x, y); ctx.lineTo(x + CELL, y); }
+        if (drawBot) { ctx.moveTo(x, y + CELL); ctx.lineTo(x + CELL, y + CELL); }
+        if (drawLeft) { ctx.moveTo(x, y); ctx.lineTo(x, y + CELL); }
+        if (drawRight) { ctx.moveTo(x + CELL, y); ctx.lineTo(x + CELL, y + CELL); }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    // Move player along path
+    const target = playerPath[playerIdx];
+    const dx = target.x - playerX;
+    const dy = target.y - playerY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 2) {
+      playerIdx = (playerIdx + 1) % playerPath.length;
+    } else {
+      playerX += (dx / dist) * 0.6;
+      playerY += (dy / dist) * 0.6;
+    }
+
+    // Player glow
+    const grad = ctx.createRadialGradient(playerX, playerY, 0, playerX, playerY, 40);
+    grad.addColorStop(0, 'rgba(249, 112, 104, 0.15)');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.fillRect(playerX - 40, playerY - 40, 80, 80);
+
+    // Player dot
+    ctx.beginPath();
+    ctx.arc(playerX, playerY, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#f97068';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(playerX, playerY, 8, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(249, 112, 104, 0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+</script>
+</body>
+</html>
