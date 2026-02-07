@@ -462,6 +462,46 @@ export default function Home() {
                   See how it works
                 </a>
               </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  marginTop: 18,
+                  color: "var(--text-dim)",
+                  fontSize: 13,
+                  fontWeight: 300,
+                }}
+              >
+                <span>Works with</span>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="#ccc"
+                  aria-label="Apple Music"
+                  role="img"
+                >
+                  <path d="M23.994 6.124a9.23 9.23 0 0 0-.24-2.19c-.317-1.31-1.062-2.31-2.18-3.043A5.022 5.022 0 0 0 19.7.28a10.16 10.16 0 0 0-1.898-.122C17.337.09 16.87.07 12 .07s-5.337.02-5.798.09A10.19 10.19 0 0 0 4.302.28a5.02 5.02 0 0 0-1.874.61C1.31 1.6.565 2.6.248 3.91a9.23 9.23 0 0 0-.24 2.19c-.07.46-.09.93-.09 5.9s.02 5.44.09 5.9a9.23 9.23 0 0 0 .24 2.19c.317 1.31 1.062 2.31 2.18 3.043a5.02 5.02 0 0 0 1.874.61c.597.1 1.2.15 1.898.17.466.06.932.08 5.802.08s5.337-.02 5.798-.08a10.19 10.19 0 0 0 1.898-.17 5.022 5.022 0 0 0 1.874-.61c1.118-.733 1.863-1.733 2.18-3.043a9.23 9.23 0 0 0 .24-2.19c.07-.46.09-.93.09-5.9s-.02-5.44-.09-5.9zm-6.92 14.554a.56.56 0 0 1-.373.148.54.54 0 0 1-.148-.02l-.107-.04a4.94 4.94 0 0 1-1.713-1.145 3.17 3.17 0 0 1-.773-1.347c-.15-.555-.165-1.16-.044-1.7.184-.82.674-1.49 1.32-1.883a2.86 2.86 0 0 1 1.404-.45c.108-.006.254.006.37.016V8.076a.34.34 0 0 0-.275-.335l-6.51 1.395a.34.34 0 0 0-.266.33v7.463a4.24 4.24 0 0 1-.178 1.08 3.17 3.17 0 0 1-.773 1.348 4.94 4.94 0 0 1-1.713 1.145l-.107.04a.54.54 0 0 1-.148.02.56.56 0 0 1-.373-.148 2.85 2.85 0 0 1-.612-1.013 3.12 3.12 0 0 1-.178-1.504c.09-.64.374-1.19.79-1.608a3.67 3.67 0 0 1 1.572-.955c.33-.108.693-.17 1.066-.19V8.198c0-.557.353-1.053.88-1.235l6.51-1.93a1.3 1.3 0 0 1 .388-.06c.677 0 1.23.548 1.23 1.22v10.56a4.24 4.24 0 0 1-.178 1.08 3.12 3.12 0 0 1-.45.845z" />
+                </svg>
+                <span style={{ color: "#ccc", fontSize: 13, fontWeight: 400 }}>
+                  Apple Music
+                </span>
+                <span>&</span>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="#ccc"
+                  aria-label="Spotify"
+                  role="img"
+                >
+                  <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+                </svg>
+                <span style={{ color: "#ccc", fontSize: 13, fontWeight: 400 }}>
+                  Spotify
+                </span>
+              </div>
             </div>
 
             {/* NOW PLAYING CARD */}
@@ -623,8 +663,10 @@ export default function Home() {
               of context.
             </h2>
             <p>
-              Overworld doesn&apos;t just know where you are. It reads the full
-              picture &mdash; then matches it to your music.
+              Overworld connects to Apple Music or Spotify &mdash; your
+              playlists, your albums, your library. It reads where you are, what
+              time it is, and what you&apos;re doing &mdash; then plays the
+              perfect match.
             </p>
           </div>
 
@@ -675,6 +717,29 @@ export default function Home() {
               </p>
             </div>
           </div>
+
+          <p
+            className="reveal"
+            style={{
+              textAlign: "center",
+              color: "var(--text-dim)",
+              marginTop: 40,
+              fontSize: 14,
+              fontWeight: 300,
+              lineHeight: 1.75,
+            }}
+          >
+            <span style={{ color: "var(--text-mid)", fontWeight: 500 }}>
+              Free to use. Seriously.
+            </span>
+            <br />
+            Create zones, paint your map, play your music &mdash; all free,
+            forever.
+            <br />
+            <span style={{ opacity: 0.7 }}>
+              Premium unlocks community sharing and automatic mode. $4.99/month.
+            </span>
+          </p>
         </div>
       </section>
 
@@ -811,7 +876,7 @@ export default function Home() {
             {[
               "React Native",
               "TypeScript",
-              "Spotify API",
+              "Apple Music + Spotify",
               "AWS Lambda",
               "DynamoDB",
               "GPS + Motion",

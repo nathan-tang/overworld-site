@@ -27,6 +27,13 @@ export const metadata: Metadata = {
   description:
     "A music app that knows where you are, what time it is, and what you're doing — then plays the perfect song. No scrolling. No choosing. Just living.",
   metadataBase: new URL("https://overworld.dev"),
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
   openGraph: {
     title: "OVERWORLD — Your Personal Soundtrack for Reality",
     description:
