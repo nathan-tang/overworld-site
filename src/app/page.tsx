@@ -423,6 +423,7 @@ export default function Home() {
             <a href="#how">How It Works</a>
             <a href="#community">Community</a>
             <a href="#help">Contribute</a>
+            <a href="/mockups">App Preview</a>
             <a href="#cta" className="nav-cta">
               Join
             </a>
